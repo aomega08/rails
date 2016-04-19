@@ -189,6 +189,13 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert @user.authenticate("secret")
   end
 
+  test "authenticate honors bytes following a binary 0" do
+    @user.password = "secret\0password"
+
+    assert !@user.authenticate("secret\0bad"), 'different password should not match'
+    assert @user.authenticate("secret\0password")
+  end
+
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
     ActiveModel::SecurePassword.min_cost = false
 
