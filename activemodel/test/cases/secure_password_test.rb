@@ -196,6 +196,13 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert @user.authenticate("secret\0password")
   end
 
+  test "authenticate handles more than 72 bytes" do
+    @user.password = 'a' * 72 + 'foo'
+
+    assert !@user.authenticate('a' * 72 + 'bar'), 'different password should not match'
+    assert @user.authenticate('a' * 72 + 'foo')
+  end
+
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
     ActiveModel::SecurePassword.min_cost = false
 
