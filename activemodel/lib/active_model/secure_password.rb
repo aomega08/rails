@@ -92,7 +92,7 @@ module ActiveModel
       #   user.authenticate('notright')      # => false
       #   user.authenticate('mUc3m00RsqyRe') # => user
       def authenticate(unencrypted_password)
-        BCrypt::Password.new(password_digest).is_password?(Base64.encode64(Digest::SHA256.digest(unencrypted_password))) && self
+        BCrypt::Password.new(password_digest).is_password?(safe_password(unencrypted_password)) && self
       end
 
       attr_reader :password
@@ -115,12 +115,18 @@ module ActiveModel
         elsif !unencrypted_password.empty?
           @password = unencrypted_password
           cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
-          self.password_digest = BCrypt::Password.create(Base64.encode64(Digest::SHA256.digest(unencrypted_password)), cost: cost)
+          self.password_digest = BCrypt::Password.create(safe_password(unencrypted_password), cost: cost)
         end
       end
 
       def password_confirmation=(unencrypted_password)
         @password_confirmation = unencrypted_password
+      end
+
+      private
+
+      def safe_password(unencrypted)
+        Base64.encode64(Digest::SHA256.digest(unencrypted))
       end
     end
   end
